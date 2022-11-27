@@ -27,7 +27,9 @@ function processLineItem(contents: string[]): string[][] {
     if (isAmount(line)) tx += 1
   }
 
-  groups = groups.filter((g) => isDate(g[0]) && isDate(g[1]))
+  groups = groups
+    .filter((g) => isDate(g[0]) && isDate(g[1]))
+    .filter((g) => g.length > 3)
 
   return groups
 }
