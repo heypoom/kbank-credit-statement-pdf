@@ -9,24 +9,32 @@ const fromCSV = (buf: Buffer): Promise<string[][]> =>
     })
   })
 
-const costsOf = (q: RegExp, txs: string[][]): number[] => {
-  const items = txs.filter((x) => q.test(x[2]))
+const search = (q: RegExp, txs: string[][]) => txs.filter((x) => q.test(x[2]))
 
-  return items
-    .map((i) => parseFloat(i[4].replace(/,/g, '')))
-    .filter((n) => !isNaN(n))
-}
+const costsOf = (txs: string[][]): number[] =>
+  txs.map((i) => parseFloat(i[4].replace(/,/g, ''))).filter((n) => !isNaN(n))
 
 const sum = (s: number[]) => s.reduce((a, b) => a + b, 0)
+
+const isNil = (s: string | null | undefined) => s === null || s === undefined
+
+function query(pattern: string, txs: string[][]) {
+  const items = search(new RegExp(pattern), txs)
+
+  for (const item of items) {
+    const [txd, pd, desc, A, B, C] = item
+
+    console.log(`${txd} | ${desc} - ${A} - ${B} ${isNil(C) ? '' : `- ${C}`}`)
+  }
+
+  console.log('Sum:', sum(costsOf(items)))
+}
 
 async function main() {
   const buffer = await fs.readFile('./output/combined.csv')
   const txs = await fromCSV(buffer)
 
-  const costs = costsOf(/GRAB/, txs)
-
-  console.log('Costs:', costs)
-  console.log('Sum:', sum(costs))
+  query('THE COMMONS', txs)
 }
 
 main()
