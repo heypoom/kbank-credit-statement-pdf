@@ -18,14 +18,15 @@ const costsOf = (txs: string[][]): number[] =>
 const sum = (s: number[]) => s.reduce((a, b) => a + b, 0)
 
 const isNil = (s: string | null | undefined) => s === null || s === undefined
+const c = (s: string | null | undefined) => (isNil(s) ? '' : `| ${s}`)
 
 function query(pattern: string, txs: string[][]) {
   const items = search(new RegExp(pattern), txs)
 
   for (const item of items) {
-    const [txd, pd, desc, A, B, C] = item
+    const [txDate, postDate, D1, D2, D3, D4] = item
 
-    console.log(`${txd} | ${desc} | ${A} | ${B} ${isNil(C) ? '' : `| ${C}`}`)
+    console.log(txDate, c(D1), c(D2), c(D3), c(D4))
   }
 
   console.log('Sum:', sum(costsOf(items)))
