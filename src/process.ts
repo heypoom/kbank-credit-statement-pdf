@@ -1,5 +1,6 @@
 import * as csv from 'csv-parse'
 import fs from 'fs/promises'
+import inquirer from 'inquirer'
 
 const fromCSV = (buf: Buffer): Promise<string[][]> =>
   new Promise((resolve, reject) => {
@@ -24,7 +25,7 @@ function query(pattern: string, txs: string[][]) {
   for (const item of items) {
     const [txd, pd, desc, A, B, C] = item
 
-    console.log(`${txd} | ${desc} - ${A} - ${B} ${isNil(C) ? '' : `- ${C}`}`)
+    console.log(`${txd} | ${desc} | ${A} | ${B} ${isNil(C) ? '' : `| ${C}`}`)
   }
 
   console.log('Sum:', sum(costsOf(items)))
@@ -34,7 +35,13 @@ async function main() {
   const buffer = await fs.readFile('./output/combined.csv')
   const txs = await fromCSV(buffer)
 
-  query('THE COMMONS', txs)
+  while (true) {
+    const q = await inquirer.prompt([
+      {type: 'input', name: 'query', message: 'What is the transaction name?'},
+    ])
+
+    query(q.query, txs)
+  }
 }
 
 main()
