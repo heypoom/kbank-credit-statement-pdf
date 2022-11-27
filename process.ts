@@ -8,14 +8,19 @@ const fromCSV = (buf: Buffer): Promise<string[][]> => new Promise((resolve, reje
   })
 })
 
+const costsOf = (q: RegExp, txs: string[][]): number[] => {
+  const items = txs.filter(x => q.test(x[2]))
+
+  return items.map(i => parseFloat(i[4].replace(/,/g, "")))
+}
+
 async function main() {
   const buffer = await fs.readFile('./tx.csv')
   const txs = await fromCSV(buffer)
 
-  const items = txs.filter(x => /GRAB/.test(x[2]))
-  const costs = items.map(i => parseFloat(i[4].replace(/,/g, "")))
-  console.log(costs)
+  const costs = costsOf(/THE COMMONS/, txs)
 
+  console.log(costs)
   console.log('Sum:', costs.reduce((a, b) => a + b))
 }
 
