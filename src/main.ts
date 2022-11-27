@@ -7,6 +7,9 @@ const P_AMOUNT = /^-?\b\d[\d,.]*\b$/
 const isDate = (s: string) => P_DATE.test(s)
 const isAmount = (s: string) => P_AMOUNT.test(s) && s.includes('.')
 
+const intoCSV = (t: string[][]) =>
+  t.map((t) => t.map((x) => `"${x}"`).join(',')).join('\n')
+
 function processLineItem(contents: string[]): string[][] {
   const startIndex = contents.findIndex(isDate)
 
@@ -34,7 +37,7 @@ function processLineItem(contents: string[]): string[][] {
   return groups
 }
 
-async function parse(key: string) {
+async function parse(key: string): Promise<string[][]> {
   const extractor = new PDFExtract()
   const file = await extractor.extract(`./input/${key}.pdf`)
 
@@ -48,20 +51,21 @@ async function parse(key: string) {
 
   console.log(`${key} has ${transactions.length} transactions.`)
 
-  const csv = transactions
-    .map((t) => t.map((x) => `"${x}"`).join(','))
-    .join('\n')
+  await fs.writeFile(`./output/${key}.csv`, intoCSV(transactions))
 
-  await fs.writeFile(`./output/${key}.csv`, csv)
+  return transactions
 }
 
 async function main() {
   const fileNames = await fs.readdir('./input')
   const inputs = fileNames.map((k) => k.replace('.pdf', ''))
 
-  await Promise.all(inputs.map(parse))
+  const tasks = await Promise.all(inputs.map(parse))
+  const transactions = tasks.flat()
 
-  console.log('Done')
+  await fs.writeFile('./output/combined.csv', intoCSV(transactions))
+
+  console.log('Done', transactions.length)
 }
 
 main()
