@@ -2,3 +2,4 @@ input/
 output/
 node_modules/
 tx.csv
+.DS_Store
