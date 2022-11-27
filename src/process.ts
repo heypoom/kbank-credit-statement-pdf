@@ -1,4 +1,4 @@
-import csv from 'csv-parse'
+import * as csv from 'csv-parse'
 import fs from 'fs/promises'
 
 const fromCSV = (buf: Buffer): Promise<string[][]> =>
@@ -12,20 +12,21 @@ const fromCSV = (buf: Buffer): Promise<string[][]> =>
 const costsOf = (q: RegExp, txs: string[][]): number[] => {
   const items = txs.filter((x) => q.test(x[2]))
 
-  return items.map((i) => parseFloat(i[4].replace(/,/g, '')))
+  return items
+    .map((i) => parseFloat(i[4].replace(/,/g, '')))
+    .filter((n) => !isNaN(n))
 }
 
+const sum = (s: number[]) => s.reduce((a, b) => a + b, 0)
+
 async function main() {
-  const buffer = await fs.readFile('./tx.csv')
+  const buffer = await fs.readFile('./output/combined.csv')
   const txs = await fromCSV(buffer)
 
-  const costs = costsOf(/THE COMMONS/, txs)
+  const costs = costsOf(/GRAB/, txs)
 
-  console.log(costs)
-  console.log(
-    'Sum:',
-    costs.reduce((a, b) => a + b)
-  )
+  console.log('Costs:', costs)
+  console.log('Sum:', sum(costs))
 }
 
 main()
