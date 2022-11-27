@@ -1,7 +1,11 @@
 import {PDFExtract} from 'pdf.js-extract'
 import * as fs from 'fs/promises'
 
-const isDate = (s: string) => /\d{2}\/\d{2}\/\d{2}/.test(s)
+const P_DATE = /\d{2}\/\d{2}\/\d{2}/
+const P_AMOUNT = /^-?\b\d[\d,.]*\b$/
+
+const isDate = (s: string) => P_DATE.test(s)
+const isAmount = (s: string) => P_AMOUNT.test(s) && s.includes('.')
 
 function processLineItem(contents: string[]): string[][] {
   const startIndex = contents.findIndex(isDate)
@@ -15,25 +19,15 @@ function processLineItem(contents: string[]): string[][] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
-    // Start transaction processing
-    if (isDate(line)) {
-      if (p === 2) {
-        p = 1
-        tx += 1
-      } else {
-        p += 1
-      }
-    }
-
     if (!groups[tx]) groups[tx] = []
 
     // Transaction Processing
     groups[tx].push(line)
+
+    if (isAmount(line)) tx += 1
   }
 
-  if (groups[tx]) {
-    groups[tx] = groups[tx].slice(0, 5)
-  }
+  groups = groups.filter((g) => isDate(g[0]) && isDate(g[1]))
 
   return groups
 }
