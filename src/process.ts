@@ -2,12 +2,7 @@ import * as csv from 'csv-parse'
 import fs from 'fs/promises'
 import inquirer from 'inquirer'
 
-const P_DATE = /\d{2}\/\d{2}\/\d{2}/
-const P_AMOUNT = /^-?\b\d[\d,.]*\b$/
 const P_CURR = /^(USD|JPY)/
-
-const isDate = (s: string) => P_DATE.test(s)
-const isAmount = (s: string) => P_AMOUNT.test(s) && s.includes('.')
 
 const fromCSV = (buf: Buffer): Promise<string[][]> =>
   new Promise((resolve, reject) => {
@@ -75,7 +70,13 @@ const intoCSV = (txs: Transaction[]): string =>
     .join('\n')
 
 function fromTx(tx: string[]): Transaction | null {
-  if (tx.length <= 5) {
+  if (tx.length === 4) {
+    const [txd, pd, desc, amt] = tx
+
+    return {txd, pd, desc, thb: amountOf(amt)}
+  }
+
+  if (tx.length === 5) {
     const [txd, pd, desc, desc2, amt] = tx
 
     return {txd, pd, desc, desc2, thb: amountOf(amt)}
